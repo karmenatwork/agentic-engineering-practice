@@ -1,0 +1,17 @@
+# Secrets
+.env
+.env.*
+
+# Dependencies
+node_modules/
+
+# SQLite database (recreate with `npm run db:seed`)
+taskr.db
+taskr.db-shm
+taskr.db-wal
+
+# Claude Code personal settings
+.claude/settings.local.json
+
+# OS
+.DS_Store
