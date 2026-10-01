@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "ogham": {
+      "command": "uvx",
+      "args": [
+        "--env-file",
+        ".env",
+        "--from",
+        "ogham-mcp",
+        "ogham",
+        "serve"
+      ]
+    }
+  }
+}
