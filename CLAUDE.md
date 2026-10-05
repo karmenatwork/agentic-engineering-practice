@@ -62,3 +62,9 @@ Health check: `GET http://localhost:3000/health`.
 - Jest only picks up files matching `package.json` `jest.testMatch`: `tests/*.test.js`, `tests/userTest.js`, `tests/test-projects.js`. A new test file must be named `*.test.js` or be added to `testMatch`, otherwise it silently won't run.
 - Each test file sets `process.env.NODE_ENV = 'test'` **before** requiring `../index`/`../DB`, so the DB is in-memory; creates the schema in `beforeAll` via `tests/schema.js`; and wipes all tables in `beforeEach`. Follow the same pattern.
 - Requests to authenticated routes need `.set('x-api-key', 'dev-key')`.
+
+## Verification
+
+- After completing any significant change, run `/verify-app` before committing. It runs the full suite serially (`npm test -- --runInBand`).
+- **Do not commit if any tests are failing.**
+- The test suite uses supertest and covers all API endpoints, so a passing run confirms the full application is working correctly.
