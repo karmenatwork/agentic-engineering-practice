@@ -12,6 +12,7 @@ taskr.db-wal
 
 # Claude Code personal settings
 .claude/settings.local.json
+.claude/hooks.log
 
 # OS
 .DS_Store
