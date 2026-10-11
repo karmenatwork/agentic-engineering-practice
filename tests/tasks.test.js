@@ -51,6 +51,62 @@ describe('GET /tasks', () => {
   test('returns 400 for invalid status value', async () => {
     const res = await request(app).get('/tasks?status=invalid');
     expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/status must be one of/);
+  });
+
+  describe('filtering by ?tag', () => {
+    beforeEach(() => {
+      db.prepare("INSERT INTO tasks (id, title, status) VALUES (1, 'Fix login bug', 'active')").run();
+      db.prepare("INSERT INTO tasks (id, title, status) VALUES (2, 'Write docs', 'active')").run();
+      db.prepare("INSERT INTO tasks (id, title, status) VALUES (3, 'Ship release', 'completed')").run();
+      db.prepare("INSERT INTO tags (id, name) VALUES (1, 'urgent'), (2, 'docs')").run();
+      db.prepare('INSERT INTO task_tags (task_id, tag_id) VALUES (1, 1), (1, 2), (2, 2), (3, 1)').run();
+    });
+
+    test('returns only tasks that have the given tag', async () => {
+      const res = await request(app).get('/tasks?tag=urgent');
+      expect(res.status).toBe(200);
+      expect(res.body.map(t => t.title).sort()).toEqual(['Fix login bug', 'Ship release']);
+    });
+
+    test('matches the tag name regardless of case and surrounding spaces', async () => {
+      const res = await request(app).get('/tasks?tag=%20URGENT%20');
+      expect(res.status).toBe(200);
+      expect(res.body).toHaveLength(2);
+    });
+
+    test('combines the tag filter with other filters', async () => {
+      const res = await request(app).get('/tasks?tag=urgent&status=active');
+      expect(res.status).toBe(200);
+      expect(res.body).toHaveLength(1);
+      expect(res.body[0].title).toBe('Fix login bug');
+    });
+
+    test('returns each matching task once with its own fields', async () => {
+      const res = await request(app).get('/tasks?tag=docs');
+      expect(res.status).toBe(200);
+      expect(res.body).toHaveLength(2);
+      expect(res.body.map(t => t.id).sort()).toEqual([1, 2]);
+      expect(res.body[0]).toHaveProperty('status', 'active');
+    });
+
+    test('returns an empty array for a tag that does not exist', async () => {
+      const res = await request(app).get('/tasks?tag=nope');
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual([]);
+    });
+
+    test('rejects an empty tag', async () => {
+      const res = await request(app).get('/tasks?tag=%20');
+      expect(res.status).toBe(400);
+      expect(res.body.error).toBe('tag must be a non-empty tag name');
+    });
+
+    test('rejects more than one tag', async () => {
+      const res = await request(app).get('/tasks?tag=urgent&tag=docs');
+      expect(res.status).toBe(400);
+      expect(res.body.error).toBe('tag must be a non-empty tag name');
+    });
   });
 });
 

@@ -1,31 +1,10 @@
 const { db } = require('./DB');
 
-function getTasks({ status, projectId, assigneeId, limit = 20, offset = 0 } = {}) {
-  let query = 'SELECT * FROM tasks';
-  const conditions = [];
-  const params = [];
-
-  if (status) {
-    conditions.push('status = ?');
-    params.push(status);
-  }
-  if (projectId) {
-    conditions.push('project_id = ?');
-    params.push(projectId);
-  }
-  if (assigneeId) {
-    conditions.push('assignee_id = ?');
-    params.push(assigneeId);
-  }
-  if (conditions.length) {
-    query += ' WHERE ' + conditions.join(' AND ');
-  }
-  query += ' ORDER BY created_at DESC LIMIT ? OFFSET ?';
-  params.push(limit, offset);
-
-  return db.prepare(query).all(params);
-}
-
+/**
+ * @description Fetches one task together with its tags and its comments (including each commenter's name).
+ * @param {number} id - Task ID.
+ * @returns {object|null} The task row with `tags` and `comments` arrays attached, or null if not found.
+ */
 function getTaskById(id) {
   const task = db.prepare('SELECT * FROM tasks WHERE id = ?').get(id);
   if (!task) return null;
@@ -38,4 +17,4 @@ function getTaskById(id) {
   return task;
 }
 
-module.exports = { getTasks, getTaskById };
+module.exports = { getTaskById };

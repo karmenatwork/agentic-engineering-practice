@@ -15,7 +15,7 @@ const router = express.Router();
 const { db } = require('./DB');
 const { authenticate } = require('./auth');
 const UserController = require('./UserController');
-const { getTasks, getTaskById } = require('./get-tasks');
+const { getTaskById } = require('./get-tasks');
 const { validateEmail, isNonEmptyString } = require('./utils');
 const { VALID_TASK_STATUSES } = require('./misc/constants');
 
@@ -138,25 +138,7 @@ router.delete('/projects/:id', authenticate, (req, res) => {
 
 // ─── Tasks ────────────────────────────────────────────────────────────────────
 
-router.get('/tasks', (req, res) => {
-  const { status, project_id, assignee_id, page, page_size } = req.query;
-
-  if (status && !VALID_TASK_STATUSES.includes(status)) {
-    return res.status(400).json({ error: `status must be one of: ${VALID_TASK_STATUSES.join(', ')}` });
-  }
-
-  const limit = Math.min(100, parseInt(page_size) || 20);
-  const offset = ((parseInt(page) || 1) - 1) * limit;
-
-  const tasks = getTasks({
-    status: status || undefined,
-    projectId: project_id ? parseInt(project_id) : undefined,
-    assigneeId: assignee_id ? parseInt(assignee_id) : undefined,
-    limit,
-    offset
-  });
-  res.json(tasks);
-});
+// GET /tasks has moved to src/routes/tasks.js
 
 router.post('/tasks', (req, res) => {
   const { title, description, project_id, assignee_id, due_date } = req.body;
@@ -322,6 +304,11 @@ router.delete('/tasks/:id/tags/:tagId', (req, res) => {
 
 // ─── Helper exported for projectHelpers.js (creates circular dep risk) ────────
 
+/**
+ * @description Lists all tasks in a project, newest first.
+ * @param {number} projectId - Project ID.
+ * @returns {object[]} Task rows ordered by created_at descending.
+ */
 function getTasksForProject(projectId) {
   return db.prepare('SELECT * FROM tasks WHERE project_id = ? ORDER BY created_at DESC').all(projectId);
 }
