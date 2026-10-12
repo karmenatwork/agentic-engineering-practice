@@ -16,3 +16,5 @@ taskr.db-wal
 
 # OS
 .DS_Store
+
+.env
